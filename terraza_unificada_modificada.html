@@ -1,0 +1,3310 @@
+- código 1: ```html
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Terraza Low-Poly con niños y animaciones | Three.js</title>
+
+  <style>
+    :root { color-scheme: dark; }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: system-ui, Arial, sans-serif;
+      background: #b7d8d7;
+    }
+
+    #scene {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .panel {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      z-index: 5;
+      max-width: min(390px, calc(100vw - 32px));
+      padding: 14px 16px;
+      border: 1px solid #ffffff70;
+      border-radius: 14px;
+      color: #20352d;
+      background: #f5f2dfdf;
+      box-shadow: 0 8px 28px #24382b22;
+      backdrop-filter: blur(8px);
+    }
+
+    .panel h1 {
+      font-size: 17px;
+      line-height: 1.2;
+      margin: 0 0 6px;
+    }
+
+    .panel p {
+      font-size: 12px;
+      line-height: 1.45;
+      margin: 0;
+    }
+
+    .hint {
+      position: fixed;
+      right: 14px;
+      bottom: 14px;
+      z-index: 5;
+      padding: 9px 12px;
+      border-radius: 10px;
+      color: #20352d;
+      background: #f5f2dfd9;
+      font-size: 12px;
+    }
+
+    #loading {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      z-index: 10;
+      background: #c6e3c9;
+      color: #20352d;
+      font-weight: 700;
+    }
+
+    @media (max-width: 600px) {
+      .panel {
+        top: 10px;
+        left: 10px;
+      }
+
+      .hint {
+        left: 10px;
+        right: 10px;
+        text-align: center;
+      }
+    }
+  </style>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.164.1/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.164.1/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+
+<body>
+
+  <div id="loading">Construyendo el escenario…</div>
+
+  <canvas id="scene"></canvas>
+
+  <div class="panel">
+    <h1>Terraza panorámica · Low-poly</h1>
+    <p>
+      Terraza 3D low-poly con niños, baile, saltos, pelota y zonas decoradas. Arrastra para girar la cámara, usa la rueda para acercarte y pulsa dos veces para volver a centrar.
+    </p>
+  </div>
+
+  <div class="hint">
+    Mouse: girar · Rueda: zoom · Shift + arrastrar: mover
+  </div>
+
+
+  <script type="module">
+
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+
+    // ======================================================
+    // CONFIGURACIÓN GENERAL
+    // ======================================================
+
+    const canvas = document.querySelector('#scene');
+
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true
+    });
+
+    renderer.setPixelRatio(
+      Math.min(window.devicePixelRatio, 2)
+    );
+
+    renderer.setSize(
+      window.innerWidth,
+      window.innerHeight
+    );
+
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+
+
+    // ======================================================
+    // ESCENA
+    // ======================================================
+
+    const scene = new THREE.Scene();
+
+    scene.background = new THREE.Color('#b8dce9');
+
+    scene.fog = new THREE.Fog(
+      '#b8dce9',
+      65,
+      150
+    );
+
+
+    // ======================================================
+    // CÁMARA
+    // ======================================================
+
+    const camera = new THREE.PerspectiveCamera(
+      48,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      250
+    );
+
+    camera.position.set(18, 13, 24);
+
+
+    // ======================================================
+    // CONTROLES
+    // ======================================================
+
+    const controls = new OrbitControls(
+      camera,
+      renderer.domElement
+    );
+
+    controls.target.set(
+      0,
+      2.2,
+      -5
+    );
+
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+
+    controls.maxPolarAngle = Math.PI * 0.48;
+
+    controls.minDistance = 9;
+    controls.maxDistance = 65;
+
+    controls.update();
+
+
+    canvas.addEventListener('dblclick', () => {
+
+      camera.position.set(
+        18,
+        13,
+        24
+      );
+
+      controls.target.set(
+        0,
+        2.2,
+        -5
+      );
+
+      controls.update();
+
+    });
+
+
+    // ======================================================
+    // ILUMINACIÓN
+    // ======================================================
+
+    scene.add(
+      new THREE.HemisphereLight(
+        '#e7f7ff',
+        '#73865a',
+        2.0
+      )
+    );
+
+
+    const sun = new THREE.DirectionalLight(
+      '#fff1ce',
+      3.0
+    );
+
+    sun.position.set(
+      -18,
+      28,
+      12
+    );
+
+    sun.castShadow = true;
+
+    sun.shadow.mapSize.set(
+      2048,
+      2048
+    );
+
+    sun.shadow.camera.left = -35;
+    sun.shadow.camera.right = 35;
+    sun.shadow.camera.top = 35;
+    sun.shadow.camera.bottom = -35;
+
+    sun.shadow.bias = -0.0003;
+
+    scene.add(sun);
+
+
+    // ======================================================
+    // MATERIALES
+    // ======================================================
+
+    const mat = (
+      color,
+      roughness = 1
+    ) => {
+
+      return new THREE.MeshStandardMaterial({
+        color,
+        roughness,
+        flatShading: true
+      });
+
+    };
+
+
+    const blue = mat('#1479bd');
+    const blueLight = mat('#258dce');
+    const blueDark = mat('#0d5b91');
+
+    const beige = [
+      mat('#c8bda2'),
+      mat('#d5cbb4'),
+      mat('#b9b29e'),
+      mat('#ddd2b8')
+    ];
+
+    const grass = mat('#9acb77');
+    const grassLight = mat('#b2d985');
+    const greenDark = mat('#65995a');
+
+    const stone = mat('#a4a79b');
+    const metal = mat('#737f75');
+
+    const wood = mat('#967347');
+    const woodLight = mat('#bd9456');
+
+    const white = mat('#f3edda');
+
+
+    // ======================================================
+    // FUNCIONES AUXILIARES
+    // ======================================================
+
+    function addMesh(
+      geometry,
+      material,
+      position,
+      parent = scene,
+      cast = true,
+      receive = true
+    ) {
+
+      const mesh = new THREE.Mesh(
+        geometry,
+        material
+      );
+
+      mesh.position.set(
+        ...position
+      );
+
+      mesh.castShadow = cast;
+      mesh.receiveShadow = receive;
+
+      parent.add(mesh);
+
+      return mesh;
+
+    }
+
+
+    function box(
+      w,
+      h,
+      d,
+      material,
+      pos,
+      parent = scene
+    ) {
+
+      return addMesh(
+        new THREE.BoxGeometry(
+          w,
+          h,
+          d
+        ),
+        material,
+        pos,
+        parent
+      );
+
+    }
+
+
+    // ======================================================
+    // TERRENO
+    // ======================================================
+
+    box(
+      100,
+      0.5,
+      100,
+      grass,
+      [0, -0.45, 0]
+    );
+
+
+    box(
+      48,
+      0.16,
+      25,
+      mat('#cfc6ad'),
+      [0, -0.13, 0]
+    );
+
+
+    // ======================================================
+    // BALDOSAS
+    // ======================================================
+
+    const tileW = 3.2;
+    const tileD = 2.1;
+
+    for (
+      let x = -22;
+      x < 23;
+      x += tileW
+    ) {
+
+      for (
+        let z = -12;
+        z < 13;
+        z += tileD
+      ) {
+
+        const material =
+          beige[
+            Math.abs(
+              Math.floor(
+                x / tileW * 3 +
+                z / tileD * 5
+              )
+            ) % beige.length
+          ];
+
+
+        const tile = box(
+          tileW - 0.09,
+          0.12,
+          tileD - 0.09,
+          material,
+          [
+            x + tileW / 2,
+            -0.025,
+            z + tileD / 2
+          ]
+        );
+
+
+        tile.rotation.y =
+          (Math.floor(x + z) % 2) * 0.003;
+
+      }
+
+    }
+
+
+    // ======================================================
+    // BARANDA AZUL
+    // ======================================================
+
+    const fenceZ = -10.6;
+    const fenceLength = 42;
+    const fenceY = 3.25;
+
+
+    box(
+      fenceLength,
+      0.28,
+      0.32,
+      blue,
+      [0, fenceY, fenceZ]
+    );
+
+
+    box(
+      fenceLength,
+      0.22,
+      0.28,
+      blue,
+      [0, 1.15, fenceZ]
+    );
+
+
+    box(
+      fenceLength,
+      0.18,
+      0.25,
+      blueDark,
+      [0, 1.0, fenceZ]
+    );
+
+
+    for (
+      let x = -21;
+      x <= 21;
+      x += 5.25
+    ) {
+
+      box(
+        0.38,
+        2.65,
+        0.42,
+        blue,
+        [x, 2.15, fenceZ]
+      );
+
+    }
+
+
+    for (
+      let y = 1.38;
+      y <= 3.1;
+      y += 0.28
+    ) {
+
+      box(
+        fenceLength - 0.7,
+        0.045,
+        0.045,
+        blueLight,
+        [0, y, fenceZ + 0.05]
+      );
+
+    }
+
+
+    for (
+      let x = -20.5;
+      x <= 20.5;
+      x += 0.42
+    ) {
+
+      box(
+        0.035,
+        1.75,
+        0.035,
+        blueLight,
+        [x, 2.25, fenceZ + 0.05]
+      );
+
+    }
+
+
+    // ======================================================
+    // MONTAÑAS
+    // ======================================================
+
+    const mountainMat = [
+      mat('#7f9caa'),
+      mat('#91aab3'),
+      mat('#6f8f9b')
+    ];
+
+
+    function mountain(
+      x,
+      z,
+      w,
+      h,
+      depth,
+      material
+    ) {
+
+      const g =
+        new THREE.ConeGeometry(
+          w,
+          h,
+          5,
+          1
+        );
+
+
+      const m = addMesh(
+        g,
+        material,
+        [x, h / 2 - 0.1, z],
+        scene,
+        true,
+        true
+      );
+
+
+      m.scale.z =
+        depth / w;
+
+      m.rotation.y =
+        0.35;
+
+    }
+
+
+    mountain(-20, -29, 12, 11, 7, mountainMat[0]);
+    mountain(-9, -31, 15, 13, 8, mountainMat[1]);
+    mountain(5, -33, 13, 10, 7, mountainMat[0]);
+    mountain(19, -31, 15, 12, 8, mountainMat[2]);
+    mountain(29, -29, 11, 9, 6, mountainMat[1]);
+
+
+    // ======================================================
+    // CIUDAD
+    // ======================================================
+
+    const cityMats = [
+      '#9eafb1',
+      '#7f999f',
+      '#b7b6a5',
+      '#8b9ea0',
+      '#c0b9a5'
+    ].map(c => mat(c));
+
+
+    for (let i = 0; i < 95; i++) {
+
+      const x =
+        -32 + Math.random() * 64;
+
+      const z =
+        -19 - Math.random() * 7;
+
+      const w =
+        0.45 + Math.random() * 1.5;
+
+      const h =
+        0.6 + Math.random() * 3.0;
+
+      const d =
+        0.5 + Math.random() * 1.2;
+
+
+      const b = box(
+        w,
+        h,
+        d,
+        cityMats[
+          i % cityMats.length
+        ],
+        [x, h / 2 - 0.1, z]
+      );
+
+
+      b.rotation.y =
+        (Math.random() - 0.5) * 0.15;
+
+    }
+
+
+    // ======================================================
+    // ÁRBOLES
+    // ======================================================
+
+    function tree(
+      x,
+      z,
+      s = 1,
+      leafColor = '#4eaa55'
+    ) {
+
+      const group =
+        new THREE.Group();
+
+
+      group.position.set(
+        x,
+        0,
+        z
+      );
+
+
+      scene.add(group);
+
+
+      const trunk = addMesh(
+        new THREE.CylinderGeometry(
+          0.18 * s,
+          0.27 * s,
+          2.1 * s,
+          5
+        ),
+        wood,
+        [0, 1.05 * s, 0],
+        group
+      );
+
+
+      const leafMat =
+        mat(leafColor);
+
+
+      const leafMat2 =
+        mat(
+          new THREE.Color(
+            leafColor
+          ).multiplyScalar(0.82)
+        );
+
+
+      const layers = [
+        [0, 2.25, 1.25],
+        [0.12, 3.0, 1.05],
+        [-0.08, 3.65, 0.82]
+      ];
+
+
+      for (
+        let i = 0;
+        i < layers.length;
+        i++
+      ) {
+
+        const [
+          lx,
+          ly,
+          r
+        ] = layers[i];
+
+
+        const crown = addMesh(
+          new THREE.IcosahedronGeometry(
+            r * s,
+            1
+          ),
+          i === 1
+            ? leafMat2
+            : leafMat,
+          [
+            lx * s,
+            ly * s,
+            0
+          ],
+          group
+        );
+
+
+        crown.scale.set(
+          1,
+          1.05,
+          0.88
+        );
+
+      }
+
+
+      return group;
+
+    }
+
+
+    tree(-17, -7, 1.25, '#329c54');
+    tree(-10, -7, 0.95, '#4cb45d');
+    tree(13, -7, 1.35, '#2e9a4e');
+    tree(19, -7, 1.05, '#56b65b');
+    tree(24, -6, 1.2, '#9dbe72');
+    tree(-24, -6, 0.85, '#398d50');
+
+
+    // ======================================================
+    // ARBUSTOS FORMANDO UN CÍRCULO
+    // ======================================================
+
+    const shrubCount = 18;  // Cantidad de arbustos
+    const centerX = 20;     // Centro del círculo en X
+    const centerZ = 0;      // Centro del círculo en Z
+    const radius = 4;       // Radio del círculo
+    const startAngle = 0;   // Rotación inicial
+
+    for (let i = 0; i < shrubCount; i++) {
+
+      // Ángulo y posición circular de cada arbusto
+      const angle = startAngle + (i / shrubCount) * Math.PI * 2;
+      const x = centerX + Math.cos(angle) * radius;
+      const z = centerZ + Math.sin(angle) * radius;
+
+      const shrub = addMesh(
+        new THREE.IcosahedronGeometry(0.35, 0),
+        mat(i % 2 ? '#6eac61' : '#8cbe6a'),
+        [x, 0.45, z]
+      );
+
+      shrub.scale.set(1.5, 0.8, 1);
+    }
+
+
+    // ======================================================
+    // DETALLES DE BALDOSAS
+    // ======================================================
+
+    const accentMats = [
+      mat('#4c7190'),
+      mat('#d3b24e'),
+      mat('#8a9c8c')
+    ];
+
+
+    [
+      [-14, 0.08, 1],
+      [8, 0.08, -2],
+      [16, 0.08, 5],
+      [-4, 0.08, -7]
+    ].forEach((p, i) => {
+
+      box(
+        0.8,
+        0.035,
+        0.48,
+        accentMats[
+          i % accentMats.length
+        ],
+        p
+      );
+
+    });
+
+
+    // ======================================================
+    // ÁRBOLES DISTANTES
+    // ======================================================
+
+    tree(
+      -27,
+      -17,
+      1.55,
+      '#5a9e64'
+    );
+
+    tree(
+      28,
+      -17,
+      1.65,
+      '#4d9a57'
+    );
+
+
+    // ======================================================
+    // PARTÍCULAS
+    // ======================================================
+
+    const speckMat =
+      new THREE.PointsMaterial({
+        color: '#fff6d8',
+        size: 0.12,
+        transparent: true,
+        opacity: 0.7
+      });
+
+
+    const speckPositions = [];
+
+
+    for (let i = 0; i < 100; i++) {
+
+      speckPositions.push(
+        -35 + Math.random() * 70,
+        5 + Math.random() * 25,
+        -30 - Math.random() * 10
+      );
+
+    }
+
+
+    const speckGeo =
+      new THREE.BufferGeometry();
+
+
+    speckGeo.setAttribute(
+      'position',
+      new THREE.Float32BufferAttribute(
+        speckPositions,
+        3
+      )
+    );
+
+
+    scene.add(
+      new THREE.Points(
+        speckGeo,
+        speckMat
+      )
+    );
+
+
+// ======================================================
+// ======================================================
+// DECORACIONES AÑADIDAS DEL SEGUNDO CÓDIGO
+// ======================================================
+
+ // 🍽️ ZONA DE PICNIC EN EL CENTRO DE LOS ARBUSTOS
+
+// Colchoneta azul oscuro
+const picnicBlue = mat('#123b68');
+
+// Tamaño de la colchoneta
+const picnicWidth = 4.8;
+const picnicHeight = 0.08;
+const picnicDepth = 4.2;
+
+// Centro: mismas coordenadas que los arbustos
+const picnicX = 20;
+const picnicZ = 0;
+const picnicY = 0.10;
+
+// Colchoneta central
+box(
+  picnicWidth,
+  picnicHeight,
+  picnicDepth,
+  picnicBlue,
+  [picnicX, picnicY, picnicZ]
+);
+
+// 🍽️ PLATOS BLANCOS
+const plateMat = mat('#ffffff');
+const plateRadius = 0.42;
+const plateHeight = 0.07;
+
+const plateGeometry = new THREE.CylinderGeometry(
+  plateRadius,
+  plateRadius,
+  plateHeight,
+  20
+);
+
+// Plato 1
+addMesh(plateGeometry, plateMat, [22, 0.23, -1.0]);
+
+// Plato 2
+addMesh(plateGeometry, plateMat, [18, 0.23, 1.4]);
+
+// Plato 3
+addMesh(plateGeometry, plateMat, [20, 0.23, 0.3]);
+
+const foodMat = mat('#f2bd59');
+const crustMat = mat('#bd7740');
+
+// Función para crear una porción triangular
+function createFoodSlice(x, z) {
+  const shape = new THREE.Shape();
+
+  // Triángulo acostado visto desde arriba
+  shape.moveTo(-0.25, -0.20);
+  shape.lineTo(0.25, -0.20);
+  shape.lineTo(0, 0.28);
+  shape.closePath();
+
+  const geometry = new THREE.ExtrudeGeometry(shape, {
+    depth: 0.06,
+    bevelEnabled: false
+  });
+
+  geometry.rotateX(-Math.PI / 2);
+
+  // Base de la porción
+  addMesh(
+    geometry,
+    foodMat,
+    [x, 0.29, z]
+  );
+
+  // Pequeña corteza en la parte ancha
+  addMesh(
+    new THREE.BoxGeometry(0.48, 0.07, 0.09),
+    crustMat,
+    [x, 0.33, z - 0.19]
+  );
+}
+
+// Una porción sobre cada plato
+createFoodSlice(18, 1.4);
+createFoodSlice(20.0, 0.3);
+createFoodSlice(22, -1.0);
+
+
+///////////////////////////////////////////////////////////////////////
+
+ // 🟩🩷 COLCHONETAS
+const matGreen = mat('#6fbd72');
+const matPink = mat('#e58baa');
+
+const matWidth = 2.8;
+const matHeight = 0.18;
+const matDepth = 1.6;
+const matY = 0.12;
+
+// FILA 1
+box(matWidth, matHeight, matDepth, matGreen, [-5, matY, 8]);
+box(matWidth, matHeight, matDepth, matPink, [-2.2, matY, 8]);
+box(matWidth, matHeight, matDepth, matGreen, [0.6, matY, 8]);
+box(matWidth, matHeight, matDepth, matPink, [3.4, matY, 8]);
+
+// FILA 2
+box(matWidth, matHeight, matDepth, matGreen, [-5, matY, 9.6]);
+box(matWidth, matHeight, matDepth, matPink, [-2.2, matY, 9.6]);
+box(matWidth, matHeight, matDepth, matGreen, [0.6, matY, 9.6]);
+box(matWidth, matHeight, matDepth, matPink, [3.4, matY, 9.6]);
+
+// ⚽ PELOTITAS PEQUEÑAS
+const ballRed = mat('#ef5350');
+const ballYellow = mat('#ffd54f');
+const ballBlue = mat('#42a5f5');
+const ballPurple = mat('#ab72d5');
+
+const ballRadius = 0.14;
+const ballGeometry = new THREE.SphereGeometry(ballRadius, 12, 8);
+
+// Colchoneta 1
+addMesh(ballGeometry, ballRed, [-5.55, 0.36, 7.8]);
+addMesh(ballGeometry, ballYellow, [-4.65, 0.36, 8.2]);
+
+// Colchoneta 2
+addMesh(ballGeometry, ballBlue, [-2.75, 0.36, 7.8]);
+addMesh(ballGeometry, ballPurple, [-1.85, 0.36, 8.2]);
+
+// Colchoneta 3
+addMesh(ballGeometry, ballYellow, [0.05, 0.36, 7.8]);
+addMesh(ballGeometry, ballRed, [0.95, 0.36, 8.2]);
+
+// Colchoneta 4
+addMesh(ballGeometry, ballPurple, [2.85, 0.36, 7.8]);
+addMesh(ballGeometry, ballBlue, [3.75, 0.36, 8.2]);
+
+// Colchoneta 5
+addMesh(ballGeometry, ballBlue, [-5.55, 0.36, 9.4]);
+addMesh(ballGeometry, ballYellow, [-4.65, 0.36, 9.8]);
+
+// Colchoneta 6
+addMesh(ballGeometry, ballRed, [-2.75, 0.36, 9.4]);
+addMesh(ballGeometry, ballPurple, [-1.85, 0.36, 9.8]);
+
+// Colchoneta 7
+addMesh(ballGeometry, ballPurple, [0.05, 0.36, 9.4]);
+addMesh(ballGeometry, ballYellow, [0.95, 0.36, 9.8]);
+
+// Colchoneta 8
+addMesh(ballGeometry, ballRed, [2.85, 0.36, 9.4]);
+addMesh(ballGeometry, ballBlue, [3.75, 0.36, 9.8]);
+
+// 🔵🟡 AROS DE HULA HULA
+const hoopBlue = mat('#168eea');
+const hoopYellow = mat('#ffd21f');
+
+const hoopRadius = 0.8;
+const hoopThickness = 0.075;
+
+// Aro azul: extremo izquierdo, X = -6
+const blueHoop = addMesh(
+  new THREE.TorusGeometry(hoopRadius, hoopThickness, 10, 32),
+  hoopBlue,
+  [-8, 0.12, 10]
+);
+blueHoop.rotation.x = Math.PI /2;
+blueHoop.rotation.z = Math.PI /2;
+
+// Aro amarillo: extremo derecho, X = 6
+const yellowHoop = addMesh(
+  new THREE.TorusGeometry(hoopRadius, hoopThickness, 10, 32),
+  hoopYellow,
+  [8, 0.12, 5]
+);
+
+yellowHoop.rotation.x = Math.PI /2;
+yellowHoop.rotation.z = Math.PI /2;
+////////////////////////////////////////////////////////
+
+// NIÑO 3
+// ======================================================
+
+const niño_3 = new THREE.Group();
+
+niño_3.name = "niño_3";
+niño_3.position.set(-1.5, 0.08, 1);
+niño_3.rotation.y = Math.PI / 2;
+niño_3.scale.setScalar(0.9);
+
+scene.add(niño_3);
+
+const niño_3_skin = mat("#d5a276");
+const niño_3_hair = mat("#c49a48");
+const niño_3_shirt = mat("#219bad");
+const niño_3_pants = mat("#3773a1");
+const niño_3_shoes = mat("#174b9a");
+
+// Cuerpo
+addMesh(
+  new THREE.CylinderGeometry(0.34, 0.39, 0.88, 8, 1),
+  niño_3_shirt,
+  [0, 1.27, -0.03],
+  niño_3
+);
+
+// Cuello
+addMesh(
+  new THREE.CylinderGeometry(0.12, 0.14, 0.18, 7),
+  niño_3_skin,
+  [0, 1.77, -0.03],
+  niño_3
+);
+
+// Brazo izquierdo
+const niño_3_brazo_izquierdo = addMesh(
+  new THREE.CylinderGeometry(0.095, 0.11, 0.62, 7),
+  niño_3_shirt,
+  [-0.39, 2, -0.01],
+  niño_3
+);
+
+niño_3_brazo_izquierdo.rotation.z = 0.12;
+
+addMesh(
+  new THREE.SphereGeometry(0.105, 7, 5),
+  niño_3_skin,
+  [-0.44, 2.4, 0.02],
+  niño_3
+);
+
+// Brazo derecho
+const niño_3_brazo_derecho = addMesh(
+  new THREE.CylinderGeometry(0.095, 0.11, 0.62, 7),
+  niño_3_shirt,
+  [0.39, 2, -0.01],
+  niño_3
+);
+
+niño_3_brazo_derecho.rotation.z = -0.12;
+
+addMesh(
+  new THREE.SphereGeometry(0.105, 7, 5),
+  niño_3_skin,
+  [0.44, 2.4, 0.02],
+  niño_3
+);
+
+// Pierna izquierda
+const niño_3_pierna_izquierda = addMesh(
+  new THREE.CylinderGeometry(0.105, 0.12, 0.66, 7),
+  niño_3_pants,
+  [-0.2, 0.62, 0.0],
+  niño_3
+);
+
+box(
+  0.30, 0.18, 0.42,
+  niño_3_shoes,
+  [-0.21, 0.35, 0.20],
+  niño_3
+);
+
+// Pierna derecha
+const niño_3_pierna_derecha = addMesh(
+  new THREE.CylinderGeometry(0.105, 0.12, 0.66, 7),
+  niño_3_pants,
+  [0.2, 0.62, 0.0],
+  niño_3
+);
+
+box(
+  0.30, 0.18, 0.42,
+  niño_3_shoes,
+  [0.21, 0.35, 0.20],
+  niño_3
+);
+
+// Cabeza
+const niño_3_head = addMesh(
+  new THREE.SphereGeometry(0.39, 10, 8),
+  niño_3_skin,
+  [0, 2.02, -0.03],
+  niño_3
+);
+
+// Cabello
+const niño_3_hairMesh = addMesh(
+  new THREE.SphereGeometry(
+    0.405, 10, 7, 0, Math.PI * 2, 0, Math.PI * 0.52
+  ),
+  niño_3_hair,
+  [0, 2.10, -0.045],
+  niño_3
+);
+
+
+// ======================================================
+// NIÑO 4
+// ======================================================
+
+const niño_4 = new THREE.Group();
+
+niño_4.name = "niño_4";
+niño_4.position.set(5.5, 0.08, 1);
+niño_4.rotation.y = -Math.PI / 2;
+niño_4.scale.setScalar(1.1);
+
+scene.add(niño_4);
+
+const niño_4_skin = mat("#b97851");
+const niño_4_hair = mat("#3a2a1b");
+const niño_4_shirt = mat("#b88636");
+const niño_4_pants = mat("#8a642d");
+const niño_4_shoes = mat("#174b9a");
+
+// Cuerpo
+addMesh(
+  new THREE.CylinderGeometry(0.34, 0.39, 0.88, 8, 1),
+  niño_4_shirt,
+  [0, 1.27, -0.03],
+  niño_4
+);
+
+// Cuello
+addMesh(
+  new THREE.CylinderGeometry(0.12, 0.14, 0.18, 7),
+  niño_4_skin,
+  [0, 1.77, -0.03],
+  niño_4
+);
+
+// Brazo izquierdo
+const niño_4_brazo_izquierdo = addMesh(
+  new THREE.CylinderGeometry(0.095, 0.11, 0.62, 7),
+  niño_4_shirt,
+  [-0.39, 2, -0.01],
+  niño_4
+);
+
+niño_4_brazo_izquierdo.rotation.z = 0.12;
+
+addMesh(
+  new THREE.SphereGeometry(0.105, 7, 5),
+  niño_4_skin,
+  [-0.43, 2.4, 0.02],
+  niño_4
+);
+
+// Brazo derecho
+const niño_4_brazo_derecho = addMesh(
+  new THREE.CylinderGeometry(0.095, 0.11, 0.62, 7),
+  niño_4_shirt,
+  [0.39, 2, -0.01],
+  niño_4
+);
+
+niño_4_brazo_derecho.rotation.z = -0.12;
+
+addMesh(
+  new THREE.SphereGeometry(0.105, 7, 5),
+  niño_4_skin,
+  [0.41, 2.4, 0.02],
+  niño_4
+);
+
+// Pierna izquierda
+const niño_4_pierna_izquierda = addMesh(
+  new THREE.CylinderGeometry(0.105, 0.12, 0.66, 7),
+  niño_4_pants,
+  [-0.2, 0.62, 0.0],
+  niño_4
+);
+
+box(
+  0.30, 0.18, 0.42,
+  niño_4_shoes,
+  [-0.21, 0.35, 0.20],
+  niño_4
+);
+
+// Pierna derecha
+const niño_4_pierna_derecha = addMesh(
+  new THREE.CylinderGeometry(0.105, 0.12, 0.66, 7),
+  niño_4_pants,
+  [0.2, 0.62, 0.0],
+  niño_4
+);
+
+box(
+  0.30, 0.18, 0.42,
+  niño_4_shoes,
+  [0.21, 0.35, 0.20],
+  niño_4
+);
+
+// Cabeza
+const niño_4_head = addMesh(
+  new THREE.SphereGeometry(0.39, 10, 8),
+  niño_4_skin,
+  [0, 2.02, -0.03],
+  niño_4
+);
+
+// Cabello
+const niño_4_hairMesh = addMesh(
+  new THREE.SphereGeometry(
+    0.405, 10, 7, 0, Math.PI * 2, 0, Math.PI * 0.52
+  ),
+  niño_4_hair,
+  [0, 2.10, -0.045],
+  niño_4
+);
+
+
+/* ==============================================
+   PELOTA: NIÑO 3 <-> NIÑO 4
+============================================== */
+
+// Crear material de la pelota
+const materialPelota = new THREE.MeshStandardMaterial({
+  color: 0xff3333,
+  roughness: 0.45,
+  metalness: 0
+});
+
+// Crear la esfera
+const pelota = new THREE.Mesh(
+  new THREE.SphereGeometry(0.18, 20, 16),
+  materialPelota
+);
+
+pelota.name = "pelota_jugando";
+scene.add(pelota);
+
+// Referencia a la mano del niño 3
+const manoNiño3 = new THREE.Object3D();
+
+manoNiño3.position.set(0.44, 2.4, 0.02);
+
+niño_3.add(manoNiño3);
+
+// Referencia a la mano del niño 4
+const manoNiño4 = new THREE.Object3D();
+
+manoNiño4.position.set(-0.43, 2.4, 0.02);
+
+niño_4.add(manoNiño4);
+
+// Variables para calcular las posiciones
+const inicioPelota = new THREE.Vector3();
+const finPelota = new THREE.Vector3();
+
+// Reloj de la animación
+const relojPelota = new THREE.Clock();
+
+// Duración de cada trayecto
+const duracionLanzamiento = 1.5;
+
+
+/* ==============================================
+   ANIMACIÓN DE LA PELOTA
+============================================== */
+
+function actualizarPelota() {
+
+  // Calcular las posiciones globales de las manos
+  scene.updateMatrixWorld(true);
+
+  manoNiño3.getWorldPosition(inicioPelota);
+  manoNiño4.getWorldPosition(finPelota);
+
+  // Ciclo de ida y vuelta
+  const tiempo = relojPelota.getElapsedTime();
+
+  const ciclo =
+    (tiempo % (duracionLanzamiento * 2))
+    / duracionLanzamiento;
+
+  let origen;
+  let destino;
+  let t;
+
+  if (ciclo < 1) {
+
+    // Del niño 3 al niño 4
+    origen = inicioPelota;
+    destino = finPelota;
+    t = ciclo;
+
+  } else {
+
+    // Del niño 4 al niño 3
+    origen = finPelota;
+    destino = inicioPelota;
+    t = ciclo - 1;
+
+  }
+
+  // Suavizar el desplazamiento
+  const suavizado = t * t * (3 - 2 * t);
+
+  pelota.position.lerpVectors(
+    origen,
+    destino,
+    suavizado
+  );
+
+  // Crear un arco durante el lanzamiento
+  const altura = 1.2;
+
+  pelota.position.y +=
+    Math.sin(Math.PI * t) * altura;
+
+  // Girar la pelota durante el vuelo
+  pelota.rotation.x += 0.06;
+  pelota.rotation.z += 0.04;
+
+}
+
+/* ==============================================
+   SALTOS DE LOS NIÑOS 3 Y 4
+============================================== */
+
+const alturaSalto = 0.35;
+const velocidadSalto = 2.5;
+
+// Guardar las posiciones originales
+const alturaBaseNiño3 = niño_3.position.y;
+const alturaBaseNiño4 = niño_4.position.y;
+
+// Función para animar los saltos
+function animarSaltos() {
+
+  const tiempo = relojPelota.getElapsedTime();
+
+  // Niño 3: comienza saltando primero
+  const salto3 = Math.max(
+    0,
+    Math.sin(tiempo * velocidadSalto)
+  );
+
+  // Niño 4: salta un poco después
+  const salto4 = Math.max(
+    0,
+    Math.sin(tiempo * velocidadSalto - 0.8)
+  );
+
+  // Aplicar el movimiento vertical
+  niño_3.position.y =
+    alturaBaseNiño3 + salto3 * alturaSalto;
+
+  niño_4.position.y =
+    alturaBaseNiño4 + salto4 * alturaSalto;
+
+}
+
+
+
+
+
+    // ======================================================
+    // NIÑO 6
+    // ======================================================
+
+    const niño_6 =
+      new THREE.Group();
+
+    niño_6.name =
+      "niño_6";
+
+    niño_6.position.set(
+      6,
+      0.08,
+      9
+    );
+
+    niño_6.rotation.y =
+      Math.PI / 2;
+
+    niño_6.scale.setScalar(
+      0.95
+    );
+
+    scene.add(niño_6);
+
+
+    const niño_6_skin =
+      mat("#bd8655");
+
+    const niño_6_hair =
+      mat("#3b2920");
+
+    const niño_6_shirt =
+      mat("#6b9c54");
+
+    const niño_6_pants =
+      mat("#70518b");
+
+    const niño_6_shoes =
+      mat("#174b9a");
+
+
+    // Cuerpo
+
+    addMesh(
+      new THREE.CylinderGeometry(
+        0.34,
+        0.39,
+        0.88,
+        8,
+        1
+      ),
+      niño_6_shirt,
+      [0, 1.27, -0.03],
+      niño_6
+    );
+
+
+    // Cuello
+
+    addMesh(
+      new THREE.CylinderGeometry(
+        0.12,
+        0.14,
+        0.18,
+        7
+      ),
+      niño_6_skin,
+      [0, 1.77, -0.03],
+      niño_6
+    );
+
+
+    // Brazo izquierdo
+
+    const niño_6_brazo_izquierdo =
+      addMesh(
+        new THREE.CylinderGeometry(
+          0.095,
+          0.11,
+          0.62,
+          7
+        ),
+        niño_6_shirt,
+        [-0.39, 1.4, 0.40],
+        niño_6
+      );
+
+    niño_6_brazo_izquierdo.rotation.x =
+      2;
+
+
+    // Mano izquierda
+
+    const niño_6_mano_izquierda =
+      addMesh(
+        new THREE.SphereGeometry(
+          0.105,
+          7,
+          5
+        ),
+        niño_6_skin,
+        [-0.43, 1.3, 0.70],
+        niño_6
+      );
+
+
+    // Brazo derecho
+
+    const niño_6_brazo_derecho =
+      addMesh(
+        new THREE.CylinderGeometry(
+          0.095,
+          0.11,
+          0.62,
+          7
+        ),
+        niño_6_shirt,
+        [0.39, 1.4, 0.40],
+        niño_6
+      );
+
+    niño_6_brazo_derecho.rotation.x =
+      2;
+
+
+    // Mano derecha
+
+    const niño_6_mano_derecha =
+      addMesh(
+        new THREE.SphereGeometry(
+          0.105,
+          7,
+          5
+        ),
+        niño_6_skin,
+        [0.43, 1.3, 0.70],
+        niño_6
+      );
+
+
+    // Pierna izquierda
+
+    const niño_6_pierna_izquierda =
+      addMesh(
+        new THREE.CylinderGeometry(
+          0.105,
+          0.12,
+          0.66,
+          7
+        ),
+        niño_6_pants,
+        [-0.2, 0.62, 0.0],
+        niño_6
+      );
+
+
+    box(
+      0.30,
+      0.18,
+      0.42,
+      niño_6_shoes,
+      [-0.21, 0.35, 0.20],
+      niño_6
+    );
+
+
+    // Pierna derecha
+
+    const niño_6_pierna_derecha =
+      addMesh(
+        new THREE.CylinderGeometry(
+          0.105,
+          0.12,
+          0.66,
+          7
+        ),
+        niño_6_pants,
+        [0.2, 0.62, 0.0],
+        niño_6
+      );
+
+
+    box(
+      0.30,
+      0.18,
+      0.42,
+      niño_6_shoes,
+      [0.21, 0.35, 0.20],
+      niño_6
+    );
+
+
+    // Cabeza
+
+    const niño_6_head =
+      addMesh(
+        new THREE.SphereGeometry(
+          0.39,
+          10,
+          8
+        ),
+        niño_6_skin,
+        [0, 2.02, -0.03],
+        niño_6
+      );
+
+
+    // Cabello
+
+    const niño_6_hairMesh =
+      addMesh(
+        new THREE.SphereGeometry(
+          0.405,
+          10,
+          7,
+          0,
+          Math.PI * 2,
+          0,
+          Math.PI * 0.52
+        ),
+        niño_6_hair,
+        [0, 2.10, -0.045],
+        niño_6
+      );
+
+
+    // ======================================================
+    // NIÑO 7
+    // ======================================================
+
+    const niño_7 =
+      new THREE.Group();
+
+    niño_7.name =
+      "niño_7";
+
+    niño_7.position.set(
+      7,
+      0.08,
+      9
+    );
+
+    niño_7.rotation.y =
+      Math.PI / 2;
+
+    niño_7.scale.setScalar(
+      1.05
+    );
+
+    scene.add(niño_7);
+
+
+    const niño_7_skin =
+      mat("#d5a276");
+
+    const niño_7_hair =
+      mat("#4b3021");
+
+    const niño_7_shirt =
+      mat("#d6b74d");
+
+    const niño_7_pants =
+      mat("#507c69");
+
+    const niño_7_shoes =
+      mat("#174b9a");
+
+
+    // Cuerpo
+
+    addMesh(
+      new THREE.CylinderGeometry(
+        0.34,
+        0.39,
+        0.88,
+        8,
+        1
+      ),
+      niño_7_shirt,
+      [0, 1.27, -0.03],
+      niño_7
+    );
+
+
+    // Cuello
+
+    addMesh(
+      new THREE.CylinderGeometry(
+        0.12,
+        0.14,
+        0.18,
+        7
+      ),
+      niño_7_skin,
+      [0, 1.77, -0.03],
+      niño_7
+    );
+
+
+    // Brazo izquierdo
+
+    const niño_7_brazo_izquierdo =
+      addMesh(
+        new THREE.CylinderGeometry(
+          0.095,
+          0.11,
+          0.62,
+          7
+        ),
+        niño_7_shirt,
+        [-0.39, 1.4, 0.40],
+        niño_7
+      );
+
+    niño_7_brazo_izquierdo.rotation.x =
+      2;
+
+
+    const niño_7_mano_izquierda =
+      addMesh(
+        new THREE.SphereGeometry(
+          0.105,
+          7,
+          5
+        ),
+        niño_7_skin,
+        [-0.43, 1.3, 0.80],
+        niño_7
+      );
+
+
+    // Brazo derecho
+
+    const niño_7_brazo_derecho =
+      addMesh(
+        new THREE.CylinderGeometry(
+          0.095,
+          0.11,
+          0.62,
+          7
+        ),
+        niño_7_shirt,
+        [0.39, 1.4, 0.40],
+        niño_7
+      );
+
+    niño_7_brazo_derecho.rotation.x =
+      2;
+
+
+    const niño_7_mano_derecha =
+      addMesh(
+        new THREE.SphereGeometry(
+          0.105,
+          7,
+          5
+        ),
+        niño_7_skin,
+        [0.43, 1.3, 0.80],
+        niño_7
+      );
+
+
+    // Pierna izquierda
+
+    const niño_7_pierna_izquierda =
+      addMesh(
+        new THREE.CylinderGeometry(
+          0.105,
+          0.12,
+          0.66,
+          7
+        ),
+        niño_7_pants,
+        [-0.2, 0.62, 0.0],
+        niño_7
+      );
+
+
+    box(
+      0.30,
+      0.18,
+      0.42,
+      niño_7_shoes,
+      [-0.21, 0.35, 0.20],
+      niño_7
+    );
+
+
+    // Pierna derecha
+
+    const niño_7_pierna_derecha =
+      addMesh(
+        new THREE.CylinderGeometry(
+          0.105,
+          0.12,
+          0.66,
+          7
+        ),
+        niño_7_pants,
+        [0.2, 0.62, 0.0],
+        niño_7
+      );
+
+
+    box(
+      0.30,
+      0.18,
+      0.42,
+      niño_7_shoes,
+      [0.21, 0.35, 0.20],
+      niño_7
+    );
+
+
+    // Cabeza
+
+    const niño_7_head =
+      addMesh(
+        new THREE.SphereGeometry(
+          0.39,
+          10,
+          8
+        ),
+        niño_7_skin,
+        [0, 2.02, -0.03],
+        niño_7
+      );
+
+
+    // Cabello
+
+    const niño_7_hairMesh =
+      addMesh(
+        new THREE.SphereGeometry(
+          0.405,
+          10,
+          7,
+          0,
+          Math.PI * 2,
+          0,
+          Math.PI * 0.52
+        ),
+        niño_7_hair,
+        [0, 2.10, -0.045],
+        niño_7
+      );
+
+
+    // ======================================================
+    // NIÑO 8
+    // ======================================================
+
+    const niño_8 =
+      new THREE.Group();
+
+    niño_8.name =
+      "niño_8";
+
+    niño_8.position.set(
+      8,
+      0.08,
+      9
+    );
+
+    niño_8.rotation.y =
+      Math.PI / 2;
+
+    niño_8.scale.setScalar(
+      0.9
+    );
+
+    scene.add(niño_8);
+
+
+    const niño_8_skin =
+      mat("#b97851");
+
+    const niño_8_hair =
+      mat("#252020");
+
+    const niño_8_shirt =
+      mat("#8067b0");
+
+    const niño_8_pants =
+      mat("#52739b");
+
+    const niño_8_shoes =
+      mat("#174b9a");
+
+
+    // Cuerpo
+
+    addMesh(
+      new THREE.CylinderGeometry(
+        0.34,
+        0.39,
+        0.88,
+        8,
+        1
+      ),
+      niño_8_shirt,
+      [0, 1.27, -0.03],
+      niño_8
+    );
+
+
+    // Cuello
+
+    addMesh(
+      new THREE.CylinderGeometry(
+        0.12,
+        0.14,
+        0.18,
+        7
+      ),
+      niño_8_skin,
+      [0, 1.77, -0.03],
+      niño_8
+    );
+
+
+    // Brazo izquierdo
+
+    const niño_8_brazo_izquierdo =
+      addMesh(
+        new THREE.CylinderGeometry(
+          0.095,
+          0.11,
+          0.62,
+          7
+        ),
+        niño_8_shirt,
+        [-0.39, 1.4, 0.50],
+        niño_8
+      );
+
+    niño_8_brazo_izquierdo.rotation.x =
+      2;
+
+
+    const niño_8_mano_izquierda =
+      addMesh(
+        new THREE.SphereGeometry(
+          0.105,
+          7,
+          5
+        ),
+        niño_8_skin,
+        [-0.43, 1.3, 0.80],
+        niño_8
+      );
+
+
+    // Brazo derecho
+
+    const niño_8_brazo_derecho =
+      addMesh(
+        new THREE.CylinderGeometry(
+          0.095,
+          0.11,
+          0.62,
+          7
+        ),
+        niño_8_shirt,
+        [0.39, 1.4, 0.50],
+        niño_8
+      );
+
+    niño_8_brazo_derecho.rotation.x =
+      2;
+
+
+    const niño_8_mano_derecha =
+      addMesh(
+        new THREE.SphereGeometry(
+          0.105,
+          7,
+          5
+        ),
+        niño_8_skin,
+        [0.43, 1.3, 0.80],
+        niño_8
+      );
+
+
+    // Pierna izquierda
+
+    const niño_8_pierna_izquierda =
+      addMesh(
+        new THREE.CylinderGeometry(
+          0.105,
+          0.12,
+          0.66,
+          7
+        ),
+        niño_8_pants,
+        [-0.2, 0.62, 0.0],
+        niño_8
+      );
+
+
+    box(
+      0.30,
+      0.18,
+      0.42,
+      niño_8_shoes,
+      [-0.21, 0.35, 0.20],
+      niño_8
+    );
+
+
+    // Pierna derecha
+
+    const niño_8_pierna_derecha =
+      addMesh(
+        new THREE.CylinderGeometry(
+          0.105,
+          0.12,
+          0.66,
+          7
+        ),
+        niño_8_pants,
+        [0.2, 0.62, 0.0],
+        niño_8
+      );
+
+
+    box(
+      0.30,
+      0.18,
+      0.42,
+      niño_8_shoes,
+      [0.21, 0.35, 0.20],
+      niño_8
+    );
+
+
+    // Cabeza
+
+    const niño_8_head =
+      addMesh(
+        new THREE.SphereGeometry(
+          0.39,
+          10,
+          8
+        ),
+        niño_8_skin,
+        [0, 2.02, -0.03],
+        niño_8
+      );
+
+
+    // Cabello
+
+    const niño_8_hairMesh =
+      addMesh(
+        new THREE.SphereGeometry(
+          0.405,
+          10,
+          7,
+          0,
+          Math.PI * 2,
+          0,
+          Math.PI * 0.52
+        ),
+        niño_8_hair,
+        [0, 2.10, -0.045],
+        niño_8
+      );
+
+
+    // ======================================================
+    // NIÑO 10
+    // ======================================================
+
+    const niño_10 =
+      new THREE.Group();
+
+    niño_10.name =
+      "niño_10";
+
+    niño_10.position.set(
+      9,
+      0.08,
+      9
+    );
+
+    niño_10.rotation.y =
+      Math.PI / 2;
+
+    niño_10.scale.setScalar(
+      1.0
+    );
+
+    scene.add(niño_10);
+
+
+    const niño_10_skin =
+      mat("#bd8655");
+
+    const niño_10_hair =
+      mat("#30231d");
+
+    const niño_10_shirt =
+      mat("#e4e0d2");
+
+    const niño_10_pants =
+      mat("#b65b49");
+
+    const niño_10_shoes =
+      mat("#174b9a");
+
+
+    // Cuerpo
+
+    addMesh(
+      new THREE.CylinderGeometry(
+        0.34,
+        0.39,
+        0.88,
+        8,
+        1
+      ),
+      niño_10_shirt,
+      [0, 1.27, -0.03],
+      niño_10
+    );
+
+
+    // Cuello
+
+    addMesh(
+      new THREE.CylinderGeometry(
+        0.12,
+        0.14,
+        0.18,
+        7
+      ),
+      niño_10_skin,
+      [0, 1.77, -0.03],
+      niño_10
+    );
+
+
+    // Brazo izquierdo
+
+    const niño_10_brazo_izquierdo =
+      addMesh(
+        new THREE.CylinderGeometry(
+          0.095,
+          0.11,
+          0.62,
+          7
+        ),
+        niño_10_shirt,
+        [-0.39, 1.4, 0.50],
+        niño_10
+      );
+
+    niño_10_brazo_izquierdo.rotation.x =
+      2;
+
+
+    const niño_10_mano_izquierda =
+      addMesh(
+        new THREE.SphereGeometry(
+          0.105,
+          7,
+          5
+        ),
+        niño_10_skin,
+        [-0.47, 1.3, 0.80],
+        niño_10
+      );
+
+
+    // Brazo derecho
+
+    const niño_10_brazo_derecho =
+      addMesh(
+        new THREE.CylinderGeometry(
+          0.095,
+          0.11,
+          0.62,
+          7
+        ),
+        niño_10_shirt,
+        [0.41, 1.4, 0.50],
+        niño_10
+      );
+
+    niño_10_brazo_derecho.rotation.x =
+      2;
+
+
+    const niño_10_mano_derecha =
+      addMesh(
+        new THREE.SphereGeometry(
+          0.105,
+          7,
+          5
+        ),
+        niño_10_skin,
+        [0.47, 1.3, 0.80],
+        niño_10
+      );
+
+
+    // Pierna izquierda
+
+    const niño_10_pierna_izquierda =
+      addMesh(
+        new THREE.CylinderGeometry(
+          0.105,
+          0.12,
+          0.66,
+          7
+        ),
+        niño_10_pants,
+        [-0.2, 0.62, 0.0],
+        niño_10
+      );
+
+
+    box(
+      0.30,
+      0.18,
+      0.42,
+      niño_10_shoes,
+      [-0.21, 0.35, 0.20],
+      niño_10
+    );
+
+
+    // Pierna derecha
+
+    const niño_10_pierna_derecha =
+      addMesh(
+        new THREE.CylinderGeometry(
+          0.105,
+          0.12,
+          0.66,
+          7
+        ),
+        niño_10_pants,
+        [0.2, 0.62, 0.0],
+        niño_10
+      );
+
+
+    box(
+      0.30,
+      0.18,
+      0.42,
+      niño_10_shoes,
+      [0.21, 0.35, 0.20],
+      niño_10
+    );
+
+
+    // Cabeza
+
+    const niño_10_head =
+      addMesh(
+        new THREE.SphereGeometry(
+          0.39,
+          10,
+          8
+        ),
+        niño_10_skin,
+        [0, 2.02, -0.03],
+        niño_10
+      );
+
+
+    // Cabello
+
+    const niño_10_hairMesh =
+      addMesh(
+        new THREE.SphereGeometry(
+          0.405,
+          10,
+          7,
+          0,
+          Math.PI * 2,
+          0,
+          Math.PI * 0.52
+        ),
+        niño_10_hair,
+        [0, 2.10, -0.045],
+        niño_10
+      );
+
+
+    // ======================================================
+    // NIÑO 11
+    // ======================================================
+
+    const niño_11 =
+      new THREE.Group();
+
+    niño_11.name =
+      "niño_11";
+
+    niño_11.position.set(
+      10,
+      0.08,
+      9
+    );
+
+    niño_11.rotation.y =
+      Math.PI / 2;
+
+    niño_11.scale.setScalar(
+      1.1
+    );
+
+    scene.add(niño_11);
+
+
+    const niño_11_skin =
+      mat("#d5a276");
+
+    const niño_11_hair =
+      mat("#39271c");
+
+    const niño_11_shirt =
+      mat("#3eafac");
+
+    const niño_11_pants =
+      mat("#886c43");
+
+    const niño_11_shoes =
+      mat("#FFFFFF");
+
+
+    // Cuerpo
+
+    addMesh(
+      new THREE.CylinderGeometry(
+        0.34,
+        0.39,
+        0.88,
+        8,
+        1
+      ),
+      niño_11_shirt,
+      [0, 1.27, -0.03],
+      niño_11
+    );
+
+
+    // Cuello
+
+    addMesh(
+      new THREE.CylinderGeometry(
+        0.12,
+        0.14,
+        0.18,
+        7
+      ),
+      niño_11_skin,
+      [0, 1.77, -0.03],
+      niño_11
+    );
+
+
+    // Brazo izquierdo
+
+    const niño_11_brazo_izquierdo =
+      addMesh(
+        new THREE.CylinderGeometry(
+          0.095,
+          0.11,
+          0.62,
+          7
+        ),
+        niño_11_shirt,
+        [-0.39, 1.50, 0.4],
+        niño_11
+      );
+
+    niño_11_brazo_izquierdo.rotation.x =
+      Math.PI / 2;
+
+
+    const niño_11_mano_izquierda =
+      addMesh(
+        new THREE.SphereGeometry(
+          0.105,
+          7,
+          5
+        ),
+        niño_11_skin,
+        [-0.43, 1.5, 0.80],
+        niño_11
+      );
+
+
+    // Brazo derecho
+
+    const niño_11_brazo_derecho =
+      addMesh(
+        new THREE.CylinderGeometry(
+          0.095,
+          0.11,
+          0.62,
+          7
+        ),
+        niño_11_shirt,
+        [0.39, 1.50, 0.4],
+        niño_11
+      );
+
+    niño_11_brazo_derecho.rotation.x =
+      Math.PI / 2;
+
+
+    const niño_11_mano_derecha =
+      addMesh(
+        new THREE.SphereGeometry(
+          0.105,
+          7,
+          5
+        ),
+        niño_11_skin,
+        [0.43, 1.5, 0.80],
+        niño_11
+      );
+
+
+    // Pierna izquierda
+
+    const niño_11_pierna_izquierda =
+      addMesh(
+        new THREE.CylinderGeometry(
+          0.105,
+          0.12,
+          0.66,
+          7
+        ),
+        niño_11_pants,
+        [-0.2, 0.62, 0.0],
+        niño_11
+      );
+
+
+    box(
+      0.30,
+      0.18,
+      0.42,
+      niño_11_shoes,
+      [-0.21, 0.35, 0.20],
+      niño_11
+    );
+
+
+    // Pierna derecha
+
+    const niño_11_pierna_derecha =
+      addMesh(
+        new THREE.CylinderGeometry(
+          0.105,
+          0.12,
+          0.66,
+          7
+        ),
+        niño_11_pants,
+        [0.2, 0.62, 0.0],
+        niño_11
+      );
+
+
+    box(
+      0.30,
+      0.18,
+      0.42,
+      niño_11_shoes,
+      [0.21, 0.35, 0.20],
+      niño_11
+    );
+
+
+    // Cabeza
+
+    const niño_11_head =
+      addMesh(
+        new THREE.SphereGeometry(
+          0.39,
+          10,
+          8
+        ),
+        niño_11_skin,
+        [0, 2.02, -0.03],
+        niño_11
+      );
+
+
+    // Cabello
+
+    const niño_11_hairMesh =
+      addMesh(
+        new THREE.SphereGeometry(
+          0.405,
+          10,
+          7,
+          0,
+          Math.PI * 2,
+          0,
+          Math.PI * 0.52
+        ),
+        niño_11_hair,
+        [0, 2.10, -0.045],
+        niño_11
+      );
+
+
+    // ======================================================
+    // ANIMACIÓN DE LOS NIÑOS
+    // ======================================================
+
+    const grupoBrazosConga = [
+
+      {
+        nombre: "niño_6",
+
+        brazos: [
+          niño_6_brazo_izquierdo,
+          niño_6_brazo_derecho
+        ],
+
+        manos: [
+          niño_6_mano_izquierda,
+          niño_6_mano_derecha
+        ],
+
+        fase: 0
+      },
+
+
+      {
+        nombre: "niño_7",
+
+        brazos: [
+          niño_7_brazo_izquierdo,
+          niño_7_brazo_derecho
+        ],
+
+        manos: [
+          niño_7_mano_izquierda,
+          niño_7_mano_derecha
+        ],
+
+        fase: 0.5
+      },
+
+
+      {
+        nombre: "niño_8",
+
+        brazos: [
+          niño_8_brazo_izquierdo,
+          niño_8_brazo_derecho
+        ],
+
+        manos: [
+          niño_8_mano_izquierda,
+          niño_8_mano_derecha
+        ],
+
+        fase: 1
+      },
+
+
+      {
+        nombre: "niño_10",
+
+        brazos: [
+          niño_10_brazo_izquierdo,
+          niño_10_brazo_derecho
+        ],
+
+        manos: [
+          niño_10_mano_izquierda,
+          niño_10_mano_derecha
+        ],
+
+        fase: 1.5
+      },
+
+
+      {
+        nombre: "niño_11",
+
+        brazos: [
+          niño_11_brazo_izquierdo,
+          niño_11_brazo_derecho
+        ],
+
+        manos: [
+          niño_11_mano_izquierda,
+          niño_11_mano_derecha
+        ],
+
+        fase: 2
+      }
+
+    ];
+
+
+    // ======================================================
+    // GUARDAR POSICIONES INICIALES
+    // ======================================================
+
+    grupoBrazosConga.forEach(
+      (nino) => {
+
+        nino.piezas = [
+          ...nino.brazos,
+          ...nino.manos
+        ];
+
+
+        nino.alturasIniciales =
+          nino.piezas.map(
+            pieza =>
+              pieza.position.y
+          );
+
+      }
+    );
+
+      
+// ======================================================
+// NIÑO 1
+// ======================================================
+
+const niño_1 = new THREE.Group();
+
+niño_1.name = "niño_1";
+niño_1.position.set(-8.5, 0.08, 1);
+niño_1.rotation.y = 310;
+niño_1.scale.setScalar(1.0);
+
+scene.add(niño_1);
+
+const niño_1_skin = mat("#bd8655");
+const niño_1_hair = mat("#242019");
+const niño_1_shirt = mat("#a84e82");
+const niño_1_pants = mat("#8a5a22");
+const niño_1_shoes = mat("#174b9a");
+
+// Cuerpo
+addMesh(
+  new THREE.CylinderGeometry(0.34, 0.39, 0.88, 8, 1),
+  niño_1_shirt,
+  [0, 1.27, -0.03],
+  niño_1
+);
+
+// Cuello
+addMesh(
+  new THREE.CylinderGeometry(0.12, 0.14, 0.18, 7),
+  niño_1_skin,
+  [0, 1.77, -0.03],
+  niño_1
+);
+
+// Brazo izquierdo
+const niño_1_brazo_izquierdo = addMesh(
+  new THREE.CylinderGeometry(0.095, 0.11, 0.62, 7),
+  niño_1_shirt,
+  [-0.39, 1.5, 0.3],
+  niño_1
+);
+
+niño_1_brazo_izquierdo.rotation.x = 2;
+
+addMesh(
+  new THREE.SphereGeometry(0.105, 7, 5),
+  niño_1_skin,
+  [-0.43, 1.39, 0.60],
+  niño_1
+);
+
+// Brazo derecho
+const niño_1_brazo_derecho = addMesh(
+  new THREE.CylinderGeometry(0.095, 0.11, 0.62, 7),
+  niño_1_shirt,
+  [0.39, 1.5, 0.3],
+  niño_1
+);
+
+niño_1_brazo_derecho.rotation.x = 2;
+
+addMesh(
+  new THREE.SphereGeometry(0.105, 7, 5),
+  niño_1_skin,
+  [0.43, 1.39, 0.60],
+  niño_1
+);
+
+// Pierna izquierda
+const niño_1_pierna_izquierda = addMesh(
+  new THREE.CylinderGeometry(0.105, 0.12, 0.66, 7),
+  niño_1_pants,
+  [-0.2, 0.62, 0.0],
+  niño_1
+);
+
+box(
+  0.30, 0.18, 0.42,
+  niño_1_shoes,
+  [-0.21, 0.35, 0.20],
+  niño_1
+);
+
+// Pierna derecha
+const niño_1_pierna_derecha = addMesh(
+  new THREE.CylinderGeometry(0.105, 0.12, 0.66, 7),
+  niño_1_pants,
+  [0.2, 0.62, 0.0],
+  niño_1
+);
+
+box(
+  0.30, 0.18, 0.42,
+  niño_1_shoes,
+  [0.21, 0.35, 0.20],
+  niño_1
+);
+
+// Cabeza
+const niño_1_head = addMesh(
+  new THREE.SphereGeometry(0.39, 10, 8),
+  niño_1_skin,
+  [0, 2.02, -0.03],
+  niño_1
+);
+
+// Cabello
+const niño_1_hairMesh = addMesh(
+  new THREE.SphereGeometry(
+    0.405, 10, 7, 0, Math.PI * 2, 0, Math.PI * 0.52
+  ),
+  niño_1_hair,
+  [0, 2.10, -0.045],
+  niño_1
+);
+
+
+// ======================================================
+// NIÑO 2
+// ======================================================
+
+const niño_2 = new THREE.Group();
+
+niño_2.name = "niño_2";
+niño_2.position.set(-6.5, 0.08, -2);
+niño_2.rotation.y = 0;
+niño_2.scale.setScalar(1.3);
+
+scene.add(niño_2);
+
+const niño_2_skin = mat("#d5a276");
+const niño_2_hair = mat("#c49a48");
+const niño_2_shirt = mat("#219bad");
+const niño_2_pants = mat("#3773a1");
+const niño_2_shoes = mat("#174b9a");
+
+// Cuerpo
+addMesh(
+  new THREE.CylinderGeometry(0.34, 0.39, 0.88, 8, 1),
+  niño_2_shirt,
+  [0, 1.27, -0.03],
+  niño_2
+);
+
+// Cuello
+addMesh(
+  new THREE.CylinderGeometry(0.12, 0.14, 0.18, 7),
+  niño_2_skin,
+  [0, 1.77, -0.03],
+  niño_2
+);
+
+// Brazo izquierdo
+const niño_2_brazo_izquierdo = addMesh(
+  new THREE.CylinderGeometry(0.095, 0.11, 0.62, 7),
+  niño_2_shirt,
+  [-0.39, 1.6, -0.01],
+  niño_2
+);
+
+ niño_2_brazo_izquierdo.rotation.z = 0.6;
+
+addMesh(
+  new THREE.SphereGeometry(0.105, 7, 5),
+  niño_2_skin,
+  [-0.6, 1.99, 0.02],
+  niño_2
+);
+
+// Brazo derecho
+const niño_2_brazo_derecho = addMesh(
+  new THREE.CylinderGeometry(0.095, 0.11, 0.62, 7),
+  niño_2_shirt,
+  [0.39, 1.6, -0.01],
+  niño_2
+);
+
+niño_2_brazo_derecho.rotation.z = -0.6;
+
+addMesh(
+  new THREE.SphereGeometry(0.105, 7, 5),
+  niño_2_skin,
+  [0.6, 1.99, 0.02],
+  niño_2
+);
+
+// Pierna izquierda
+const niño_2_pierna_izquierda = addMesh(
+  new THREE.CylinderGeometry(0.105, 0.12, 0.66, 7),
+  niño_2_pants,
+  [-0.2, 0.62, 0.0],
+  niño_2
+);
+
+box(
+  0.30, 0.18, 0.42,
+  niño_2_shoes,
+  [-0.21, 0.35, 0.20],
+  niño_2
+);
+
+// Pierna derecha
+const niño_2_pierna_derecha = addMesh(
+  new THREE.CylinderGeometry(0.105, 0.12, 0.66, 7),
+  niño_2_pants,
+  [0.2, 0.62, 0.0],
+  niño_2
+);
+
+box(
+  0.30, 0.18, 0.42,
+  niño_2_shoes,
+  [0.21, 0.35, 0.20],
+  niño_2
+);
+
+// Cabeza
+const niño_2_head = addMesh(
+  new THREE.SphereGeometry(0.39, 10, 8),
+  niño_2_skin,
+  [0, 2.02, -0.03],
+  niño_2
+);
+
+// Cabello
+const niño_2_hairMesh = addMesh(
+  new THREE.SphereGeometry(
+    0.405, 10, 7, 0, Math.PI * 2, 0, Math.PI * 0.52
+  ),
+  niño_2_hair,
+  [0, 2.10, -0.045],
+  niño_2
+);
+
+// ======================================================
+// NIÑO 9
+// ======================================================
+
+const niño_9 = new THREE.Group();
+
+niño_9.name = "niño_9";
+niño_9.position.set(-6.5, 0.08, 1);
+niño_9.rotation.y = 330;
+niño_9.scale.setScalar(0.85);
+
+scene.add(niño_9);
+
+const niño_9_skin = mat("#d5a276");
+const niño_9_hair = mat("#c49a48");
+const niño_9_shirt = mat("#e28dba");
+const niño_9_pants = mat("#596c9d");
+const niño_9_shoes = mat("#174b9a");
+
+// Cuerpo
+addMesh(
+  new THREE.CylinderGeometry(0.34, 0.39, 0.88, 8, 1),
+  niño_9_shirt,
+  [0, 1.27, -0.03],
+  niño_9
+);
+
+// Cuello
+addMesh(
+  new THREE.CylinderGeometry(0.12, 0.14, 0.18, 7),
+  niño_9_skin,
+  [0, 1.77, -0.03],
+  niño_9
+);
+
+// Brazo izquierdo
+const niño_9_brazo_izquierdo = addMesh(
+  new THREE.CylinderGeometry(0.095, 0.11, 0.62, 7),
+  niño_9_shirt,
+  [-0.39, 1.6, -0.01],
+  niño_9
+);
+
+niño_9_brazo_izquierdo.rotation.z = 0.6;
+
+addMesh(
+  new THREE.SphereGeometry(0.105, 7, 5),
+  niño_9_skin,
+  [-0.43, 1.99, 0.02],
+  niño_9
+);
+
+// Brazo derecho
+const niño_9_brazo_derecho = addMesh(
+  new THREE.CylinderGeometry(0.095, 0.11, 0.62, 7),
+  niño_9_shirt,
+  [0.39, 1.6, -0.01],
+  niño_9
+);
+
+niño_9_brazo_derecho.rotation.z = -0.6;
+
+addMesh(
+  new THREE.SphereGeometry(0.105, 7, 5),
+  niño_9_skin,
+  [0.43, 1.99, 0.02],
+  niño_9
+);
+
+// Pierna izquierda
+const niño_9_pierna_izquierda = addMesh(
+  new THREE.CylinderGeometry(0.105, 0.12, 0.66, 7),
+  niño_9_pants,
+  [-0.2, 0.62, 0.0],
+  niño_9
+);
+
+box(
+  0.30, 0.18, 0.42,
+  niño_9_shoes,
+  [-0.21, 0.35, 0.20],
+  niño_9
+);
+
+// Pierna derecha
+const niño_9_pierna_derecha = addMesh(
+  new THREE.CylinderGeometry(0.105, 0.12, 0.66, 7),
+  niño_9_pants,
+  [0.2, 0.62, 0.0],
+  niño_9
+);
+
+box(
+  0.30, 0.18, 0.42,
+  niño_9_shoes,
+  [0.21, 0.35, 0.20],
+  niño_9
+);
+
+// Cabeza
+const niño_9_head = addMesh(
+  new THREE.SphereGeometry(0.39, 10, 8),
+  niño_9_skin,
+  [0, 2.02, -0.03],
+  niño_9
+);
+
+// Cabello
+const niño_9_hairMesh = addMesh(
+  new THREE.SphereGeometry(
+    0.405, 10, 7, 0, Math.PI * 2, 0, Math.PI * 0.52
+  ),
+  niño_9_hair,
+  [0, 2.10, -0.045],
+  niño_9
+);
+
+
+
+// ======================================================
+// NIÑO 5
+// ======================================================
+
+const niño_5 = new THREE.Group();
+
+niño_5.name = "niño_5";
+niño_5.position.set(-4.5, 0.08, 1);
+niño_5.rotation.y = 280;
+niño_5.scale.setScalar(1.0);
+
+scene.add(niño_5);
+
+const niño_5_skin = mat("#d5a276");
+const niño_5_hair = mat("#292027");
+const niño_5_shirt = mat("#e06b52");
+const niño_5_pants = mat("#4c6396");
+const niño_5_shoes = mat("#174b9a");
+
+// Cuerpo
+addMesh(
+  new THREE.CylinderGeometry(0.34, 0.39, 0.88, 8, 1),
+  niño_5_shirt,
+  [0, 1.27, -0.03],
+  niño_5
+);
+
+// Cuello
+addMesh(
+  new THREE.CylinderGeometry(0.12, 0.14, 0.18, 7),
+  niño_5_skin,
+  [0, 1.77, -0.03],
+  niño_5
+);
+
+// Brazo izquierdo
+const niño_5_brazo_izquierdo = addMesh(
+  new THREE.CylinderGeometry(0.095, 0.11, 0.62, 7),
+  niño_5_shirt,
+  [-0.39, 1.6, -0.01],
+  niño_5
+);
+
+niño_5_brazo_izquierdo.rotation.z = 0.6;
+
+addMesh(
+  new THREE.SphereGeometry(0.105, 7, 5),
+  niño_5_skin,
+  [-0.6, 1.99, 0.02],
+  niño_5
+);
+
+// Brazo derecho
+const niño_5_brazo_derecho = addMesh(
+  new THREE.CylinderGeometry(0.095, 0.11, 0.62, 7),
+  niño_5_shirt,
+  [0.39, 1.6, -0.01],
+  niño_5
+);
+
+niño_5_brazo_derecho.rotation.z = -0.6;
+
+addMesh(
+  new THREE.SphereGeometry(0.105, 7, 5),
+  niño_5_skin,
+  [0.6, 1.99, 0.02],
+  niño_5
+);
+
+// Pierna izquierda
+const niño_5_pierna_izquierda = addMesh(
+  new THREE.CylinderGeometry(0.105, 0.12, 0.66, 7),
+  niño_5_pants,
+  [-0.2, 0.62, 0.0],
+  niño_5
+);
+
+box(
+  0.30, 0.18, 0.42,
+  niño_5_shoes,
+  [-0.21, 0.35, 0.20],
+  niño_5
+);
+
+// Pierna derecha
+const niño_5_pierna_derecha = addMesh(
+  new THREE.CylinderGeometry(0.105, 0.12, 0.66, 7),
+  niño_5_pants,
+  [0.2, 0.62, 0.0],
+  niño_5
+);
+
+box(
+  0.30, 0.18, 0.42,
+  niño_5_shoes,
+  [0.21, 0.35, 0.20],
+  niño_5
+);
+
+// Cabeza
+const niño_5_head = addMesh(
+  new THREE.SphereGeometry(0.39, 10, 8),
+  niño_5_skin,
+  [0, 2.02, -0.03],
+  niño_5
+);
+
+// Cabello
+const niño_5_hairMesh = addMesh(
+  new THREE.SphereGeometry(
+    0.405, 10, 7, 0, Math.PI * 2, 0, Math.PI * 0.52
+  ),
+  niño_5_hair,
+  [0, 2.10, -0.045],
+  niño_5
+);
+
+
+/* ======================================================
+   ANIMACIÓN DE BAILE DE LOS CUATRO NIÑOS
+   ====================================================== */
+
+// Guardar las rotaciones originales de los brazos
+const brazosArriba = [
+  {
+    izq: niño_2_brazo_izquierdo,
+    der: niño_2_brazo_derecho,
+    baseIzq: niño_2_brazo_izquierdo.rotation.z,
+    baseDer: niño_2_brazo_derecho.rotation.z,
+    fase: 0
+  },
+  {
+    izq: niño_9_brazo_izquierdo,
+    der: niño_9_brazo_derecho,
+    baseIzq: niño_9_brazo_izquierdo.rotation.z,
+    baseDer: niño_9_brazo_derecho.rotation.z,
+    fase: 1.2
+  },
+  {
+    izq: niño_5_brazo_izquierdo,
+    der: niño_5_brazo_derecho,
+    baseIzq: niño_5_brazo_izquierdo.rotation.z,
+    baseDer: niño_5_brazo_derecho.rotation.z,
+    fase: 2.4
+  }
+];
+
+// Guardar las rotaciones originales del niño que
+// tiene los brazos hacia delante
+const niño1BaseIzq = niño_1_brazo_izquierdo.rotation.x;
+const niño1BaseDer = niño_1_brazo_derecho.rotation.x;
+
+// Reloj para calcular el movimiento según el tiempo
+const relojBaile = new THREE.Clock();
+
+// Función que actualiza el baile
+function animarBrazosBaile() {
+
+  const tiempo = relojBaile.getElapsedTime();
+
+  // ----------------------------------------------
+  // NIÑOS 2, 9 Y 5: BALANCEO LATERAL DE LOS BRAZOS
+  // ----------------------------------------------
+
+  brazosArriba.forEach((brazos) => {
+
+    const balanceo = Math.sin(tiempo * 2.5 + brazos.fase) * 0.30;
+
+    brazos.izq.rotation.z = brazos.baseIzq + balanceo;
+    brazos.der.rotation.z = brazos.baseDer + balanceo;
+
+  });
+
+  // ----------------------------------------------
+  // NIÑO 1: BRAZOS HACIA ARRIBA Y HACIA ABAJO
+  // ----------------------------------------------
+
+  const movimientoVertical = Math.sin(tiempo * 3) * 0.25;
+
+  niño_1_brazo_izquierdo.rotation.x =
+    niño1BaseIzq + movimientoVertical;
+
+  niño_1_brazo_derecho.rotation.x =
+    niño1BaseDer + movimientoVertical;
+
+}
+
+
+    // ======================================================
+    // RELOJ DE ANIMACIÓN
+    // ======================================================
+
+    const relojConga =
+      new THREE.Clock();
+
+
+    function animarConga() {
+
+      const tiempo =
+        relojConga.getElapsedTime();
+
+
+      grupoBrazosConga.forEach(
+        (nino) => {
+
+          const movimiento =
+            Math.sin(
+              tiempo * 3 +
+              nino.fase
+            ) * 0.045;
+
+
+          nino.piezas.forEach(
+            (pieza, indice) => {
+
+              pieza.position.y =
+                nino.alturasIniciales[indice] +
+                movimiento;
+
+            }
+          );
+
+        }
+      );
+
+    }
+
+
+    // ======================================================
+    // FINALIZAR CARGA
+    // ======================================================
+
+    document.querySelector(
+      '#loading'
+    ).style.display = 'none';
+
+
+    // ======================================================
+    // BUCLE PRINCIPAL
+    // ======================================================
+
+    function animate() {
+
+      requestAnimationFrame(
+        animate
+      );
+
+      controls.update();
+
+      animarConga();
+      actualizarPelota();
+      animarSaltos();
+      animarBrazosBaile();
+
+      renderer.render(
+        scene,
+        camera
+      );
+
+    }
+
+
+    animate();
+
+
+    // ======================================================
+    // RESIZE
+    // ======================================================
+
+    window.addEventListener(
+      'resize',
+      () => {
+
+        camera.aspect =
+          window.innerWidth /
+          window.innerHeight;
+
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(
+          window.innerWidth,
+          window.innerHeight
+        );
+
+      }
+    );
+
+  </script>
+
+</body>
+</html>
+
+
